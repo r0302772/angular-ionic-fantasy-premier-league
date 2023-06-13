@@ -1,0 +1,7 @@
+{
+  "name": "angular-ionic-fantasy-premier-league",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
