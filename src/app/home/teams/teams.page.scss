@@ -1,0 +1,40 @@
+.table-grid {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table-row {
+  display: flex;
+  width: max-content;
+}
+
+.table-row ion-col {
+  min-width: 120px;
+  max-width: 200px;
+  min-height: 2.5em;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.table-row ion-col[sticky] {
+  position: sticky;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+.table-row ion-col[sticky]:first-child {
+  left: 0;
+}
+
+.table-row ion-col[sticky]:nth-child(2) {
+  left: 120px;
+}
+
+.light-row {
+  background-color: #f5f5f5;
+}
+
+.gray-row {
+  background-color: #e0e0e0;
+}
+

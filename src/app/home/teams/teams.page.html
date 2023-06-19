@@ -1,0 +1,77 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-back-button></ion-back-button>
+    <ion-title>Teams</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-grid class="table-grid">
+    <ion-row class="table-row">
+      <!--<ion-col>ID</ion-col>-->
+      <ion-col sticky>#</ion-col>
+      <ion-col sticky>Name</ion-col>
+      <ion-col>Played</ion-col>
+      <ion-col>W</ion-col>
+      <ion-col>D</ion-col>
+      <ion-col>L</ion-col>
+      <ion-col>Pts.</ion-col>
+      <ion-col>+ / - / = </ion-col>
+      <!--<ion-col>Short Name</ion-col>-->
+      <!--<ion-col>Team Division</ion-col>-->
+      <ion-col>Unavailable</ion-col>
+      <ion-col>Strength</ion-col>
+      <ion-col>SOH*</ion-col>
+      <ion-col>SOA*</ion-col>
+      <ion-col>SAH*</ion-col>
+      <ion-col>SAA*</ion-col>
+      <ion-col>SDH*</ion-col>
+      <ion-col>SDA*</ion-col>
+      <!--<ion-col>Pulse ID</ion-col>-->
+    </ion-row>
+    <ng-container *ngFor="let t of teamsObservable | async; let i = index">
+      <ion-row class="table-row" [ngClass]="i % 2 === 0 ? 'light-row': 'gray-row'">
+        <!--<ion-col>{{ t.id }}</ion-col>-->
+        <ion-col sticky>{{ t.position }}</ion-col>
+        <ion-col sticky>{{t.name}}</ion-col>
+        <ion-col>{{ t.played }}</ion-col>
+        <ion-col>{{ t.win }}</ion-col>
+        <ion-col>{{ t.draw }}</ion-col>
+        <ion-col>{{ t.loss }}</ion-col>
+        <ion-col>{{ t.points }}</ion-col>
+        <ion-col>{{ t.goals_for }} / {{t.goals_against}} / {{t.goal_difference}}</ion-col>
+        <!--<ion-col>{{ t.short_name }}</ion-col>-->
+        <!--<ion-col>{{ t.team_division }}</ion-col>-->
+        <ion-col>{{ t.unavailable ? 'Yes' : 'No' }}</ion-col>
+        <ion-col>{{ t.strength }}</ion-col>
+        <ion-col>{{ t.strength_overall_home }}</ion-col>
+        <ion-col>{{ t.strength_overall_away }}</ion-col>
+        <ion-col>{{ t.strength_attack_home }}</ion-col>
+        <ion-col>{{ t.strength_attack_away }}</ion-col>
+        <ion-col>{{ t.strength_defence_home }}</ion-col>
+        <ion-col>{{ t.strength_defence_away }}</ion-col>
+        <!--<ion-col>{{ t.pulse_id }}</ion-col>-->
+      </ion-row>
+    </ng-container>
+    <ion-row>
+      <ion-label>
+        *SOH: Strength Overall Home
+      </ion-label>
+      <ion-label>
+        *SOA: Strength Overall Away
+      </ion-label>
+      <ion-label>
+        *SAH: Strength Attack Home
+      </ion-label>
+      <ion-label>
+        *SAA: Strength Attack Away
+      </ion-label>
+      <ion-label>
+        *SDH: Strength Defence Home
+      </ion-label>
+      <ion-label>
+        *SDA: Strength Defence Away
+      </ion-label>
+    </ion-row>
+  </ion-grid>
+</ion-content>
