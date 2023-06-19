@@ -1,0 +1,91 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Prizes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Prizes</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-item lines="full">
+    <h2>Overall Prizes</h2>
+  </ion-item>
+  <ion-item *ngFor="let p of (this.overallPrizesObservable | async)" lines="none">
+    <ion-col>
+      <ion-label>
+        <h2>{{p.title}}</h2>
+        <p>{{p.description}}</p>
+      </ion-label>
+      <ul>
+        <li *ngFor="let r of p.rewards">
+          {{r}}
+        </li>
+      </ul>
+    </ion-col>
+  </ion-item>
+
+  <ion-item-divider></ion-item-divider>
+
+  <ion-item lines="full">
+    <h2>Monthly Prizes</h2>
+  </ion-item>
+  <ion-item *ngFor="let p of (this.monthlyPrizesObservable | async)" lines="none">
+    <ion-col>
+      <ion-label>
+        <h2>{{p.title}}</h2>
+        <p>{{p.description}}</p>
+      </ion-label>
+      <ul>
+        <li *ngFor="let r of p.rewards">
+          {{r}}
+        </li>
+      </ul>
+    </ion-col>
+  </ion-item>
+
+  <ion-item-divider></ion-item-divider>
+
+  <ion-item lines="full">
+    <h2>Weekly Prizes</h2>
+  </ion-item>
+  <ion-item *ngFor="let p of (this.weeklyPrizesObservable | async)" lines="none">
+    <ion-col>
+      <ion-label>
+        <h2>{{p.title}}</h2>
+        <p>{{p.description}}</p>
+      </ion-label>
+      <ul>
+        <li *ngFor="let r of p.rewards">
+          {{r}}
+        </li>
+      </ul>
+    </ion-col>
+  </ion-item>
+
+  <ion-item-divider></ion-item-divider>
+
+  <ion-item lines="full">
+    <h2>Second Chance Prizes</h2>
+  </ion-item>
+  <ion-item *ngFor="let p of (this.secondChancePrizesObservable | async)" lines="none">
+    <ion-col>
+      <ion-label>
+        <h2>{{p.title}}</h2>
+        <p>{{p.description}}</p>
+      </ion-label>
+      <ul>
+        <li *ngFor="let r of p.rewards">
+          {{r}}
+        </li>
+      </ul>
+    </ion-col>
+  </ion-item>
+
+</ion-content>

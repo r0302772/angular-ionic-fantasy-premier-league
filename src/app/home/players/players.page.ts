@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import {Observable} from 'rxjs';
-import {BootstrapStaticResult} from '../../types/bootstrap-static/bootstrapStaticResult';
-import {ApiService} from '../../services/api.service';
-import {JsonDataService} from '../../services/json-data.service';
+import {from, Observable} from 'rxjs';
+import {Element} from '../../types/bootstrap-static/element';
+import {BootstrapStaticService} from '../../services/bootstrap-static.service';
 
 @Component({
   selector: 'app-players',
@@ -11,13 +10,10 @@ import {JsonDataService} from '../../services/json-data.service';
 })
 export class PlayersPage implements OnInit {
 
-  result: Observable<BootstrapStaticResult>;
+  elementsObservable: Observable<Element[]> = from([]);
 
-  constructor(private apiService: ApiService, private jsonDataService:JsonDataService) {
-    this.result = this.jsonDataService.getBootstrapStaticResult();
-    this.result.subscribe(response => {
-      console.log(response);
-    });
+  constructor(private bootstrapStaticService: BootstrapStaticService) {
+    this.elementsObservable = this.bootstrapStaticService.getElementsFromBootstrapStatic();
   }
 
   ngOnInit() {

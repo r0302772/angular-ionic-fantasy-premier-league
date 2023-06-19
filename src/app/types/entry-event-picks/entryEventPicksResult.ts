@@ -1,11 +1,11 @@
 export interface EntryEventPicksResult {
   active_chip: string | null;
-  automatic_subs: AutomaticSubstitution[];
+  automatic_subs: AutomaticSub[];
   entry_history: EntryHistory;
   picks: Pick[];
 }
 
-export interface AutomaticSubstitution {
+export interface AutomaticSub {
   entry: number;
   element_in: number;
   element_out: number;

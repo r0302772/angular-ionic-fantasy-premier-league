@@ -1,10 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
-import {BootstrapStaticResult} from '../../types/bootstrap-static/bootstrapStaticResult';
-import {ApiService} from '../../services/api.service';
-import {JsonDataService} from '../../services/json-data.service';
 import {FixturesResult} from '../../types/fixtures/fixturesResult';
 import {ActivatedRoute} from '@angular/router';
+import {FixturesService} from '../../services/fixtures.service';
 
 @Component({
   selector: 'app-fixtures',
@@ -13,19 +11,10 @@ import {ActivatedRoute} from '@angular/router';
 })
 export class FixturesPage implements OnInit {
 
-  result: Observable<BootstrapStaticResult>;
-  fixtures: Observable<FixturesResult[]>;
+  fixtures: Observable<FixturesResult[] | null>;
 
-  constructor(private apiService: ApiService, private jsonDataService: JsonDataService, public activatedRoute: ActivatedRoute) {
-    this.result = this.jsonDataService.getBootstrapStaticResult();
-    this.result.subscribe(response => {
-      console.log(response);
-    });
-
-    this.fixtures = this.jsonDataService.getFixturesResult();
-    this.fixtures.subscribe(response => {
-      console.log(response);
-    });
+  constructor(private fixturesService: FixturesService) {
+    this.fixtures = this.fixturesService.getFixturesOfEventFromFixtures(1);
   }
 
   ngOnInit() {
@@ -33,12 +22,12 @@ export class FixturesPage implements OnInit {
   }
 
   setData(): void {
-    const id = this.activatedRoute.snapshot.paramMap.get('id');
+/*    const id = this.activatedRoute.snapshot.paramMap.get('id');
 
     // No need to continue with the function if no parameter was specified.
     if (id === null) {
       return;
-    }
+    }*/
   }
 
 }
