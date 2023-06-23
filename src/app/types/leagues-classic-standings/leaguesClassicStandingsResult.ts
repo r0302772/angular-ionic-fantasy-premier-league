@@ -1,46 +1,61 @@
+import {Standing} from './standing';
+import {League} from './league';
+
+/**
+ * Represents the result of the `leagues-classic/{league_id}/standings` API endpoint.
+ */
 export interface LeagueClassicStandingsResult {
+  /**
+   * Information about new entries in the league.
+   */
   new_entries: NewEntries;
+  /**
+   * The last updated date for the standings data.
+   */
   last_updated_data: string;
+  /**
+   * The details of the league.
+   */
   league: League;
+  /**
+   * The standings of the league.
+   */
   standings: Standings;
 }
 
+/**
+ * Represents information about new entries in a league.
+ */
 export interface NewEntries {
+  /**
+   * Indicates whether there are more new entries available.
+   */
   has_next: boolean;
+  /**
+   * The page number of the new entries.
+   */
   page: number;
+  /**
+   * The list of new entries.
+   */
   results: Standing[];
 }
 
-export interface League {
-  id: number;
-  name: string;
-  created: string;
-  closed: boolean;
-  max_entries: null | number;
-  league_type: string;
-  scoring: string;
-  admin_entry: number;
-  start_event: number;
-  code_privacy: string;
-  has_cup: boolean;
-  cup_league: number;
-  rank: null | number;
-}
-
+/**
+ * Represents the standings of a league.
+ */
 export interface Standings {
+  /**
+   * Indicates whether there are more standings available.
+   */
   has_next: boolean;
+  /**
+   * The page number of the standings.
+   */
   page: number;
+  /**
+   * The list of standings.
+   */
   results: Standing[];
 }
 
-export interface Standing {
-  id: number;
-  event_total: number;
-  player_name: string;
-  rank: number;
-  last_rank: number;
-  rank_sort: number;
-  total: number;
-  entry: number;
-  entry_name: string;
-}

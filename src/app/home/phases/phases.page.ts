@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import {from, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {Phase} from '../../types/bootstrap-static/phase';
 import {BootstrapStaticService} from '../../services/bootstrap-static.service';
+import {ApiService} from '../../services/api.service';
 
 @Component({
   selector: 'app-phases',
@@ -10,9 +11,9 @@ import {BootstrapStaticService} from '../../services/bootstrap-static.service';
 })
 export class PhasesPage implements OnInit {
 
-  phasesObservable: Observable<Phase[]> = from([]);
+  phasesObservable: Observable<Phase[]>;
 
-  constructor(private bootstrapStaticService: BootstrapStaticService) {
+  constructor(private bootstrapStaticService: BootstrapStaticService, private apiService:ApiService) {
     this.phasesObservable = this.bootstrapStaticService.getPhasesFromBootstrapStatic();
   }
 

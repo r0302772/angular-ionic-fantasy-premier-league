@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {Observable} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {FixturesResult} from '../../types/fixtures/fixturesResult';
 import {ActivatedRoute} from '@angular/router';
 import {FixturesService} from '../../services/fixtures.service';
@@ -11,7 +11,7 @@ import {FixturesService} from '../../services/fixtures.service';
 })
 export class FixturesPage implements OnInit {
 
-  fixtures: Observable<FixturesResult[] | null>;
+  fixtures: Observable<FixturesResult[]>;
 
   constructor(private fixturesService: FixturesService) {
     this.fixtures = this.fixturesService.getFixturesOfEventFromFixtures(1);
@@ -22,12 +22,16 @@ export class FixturesPage implements OnInit {
   }
 
   setData(): void {
-/*    const id = this.activatedRoute.snapshot.paramMap.get('id');
+    /*    const id = this.activatedRoute.snapshot.paramMap.get('id');
 
-    // No need to continue with the function if no parameter was specified.
-    if (id === null) {
-      return;
-    }*/
+        // No need to continue with the function if no parameter was specified.
+        if (id === null) {
+          return;
+        }*/
+  }
+
+  getBestTeamsPerGameweek() {
+    this.fixturesService.getSelectedTeamsByGameweek().subscribe();
   }
 
 }

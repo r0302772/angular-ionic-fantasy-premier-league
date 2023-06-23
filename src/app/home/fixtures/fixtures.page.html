@@ -13,13 +13,7 @@
       <ion-title size="large">Fixtures</ion-title>
     </ion-toolbar>
   </ion-header>
-
-<!--  <ion-list>
-    <ion-item *ngFor="let event of (this.result | async)?.events">
-      <ion-label>{{event.name}}</ion-label>
-    </ion-item>
-  </ion-list>-->
-
+  <ion-button (click)="this.getBestTeamsPerGameweek()">Get best teams per gameweek</ion-button>
   <ion-list>
     <ion-item *ngFor="let fixture of (this.fixtures | async)">
       <ion-label>

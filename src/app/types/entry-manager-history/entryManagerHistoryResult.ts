@@ -1,31 +1,22 @@
+import {CurrentSeason} from './currentSeason';
+import {PastSeason} from './pastSeason';
+import {Chip} from './chip';
+
+/**
+ * Represents the result of the `entry/{manager_id}/history/` API endpoint.
+ */
 export interface EntryManagerHistoryResult {
+  /**
+   * The current season data for the entry (manager).
+   */
   current: CurrentSeason[];
+  /**
+   * The past season data for the entry (manager).
+   */
   past: PastSeason[];
+  /**
+   * The list of chips used by the entry (manager).
+   */
   chips: Chip[];
 }
 
-export interface CurrentSeason {
-  event: number;
-  points: number;
-  total_points: number;
-  rank: number;
-  rank_sort: number;
-  overall_rank: number;
-  bank: number;
-  value: number;
-  event_transfers: number;
-  event_transfers_cost: number;
-  points_on_bench: number;
-}
-
-export interface PastSeason {
-  season_name: string;
-  total_points: number;
-  rank: number;
-}
-
-export interface Chip {
-  name: string;
-  time: string;
-  event: number;
-}

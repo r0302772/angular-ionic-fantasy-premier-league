@@ -1,6 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {combineLatest, map, Observable, of, tap} from 'rxjs';
+import {combineLatest, map, Observable} from 'rxjs';
 import {BootstrapStaticResult} from '../types/bootstrap-static/bootstrapStaticResult';
 import {Event} from '../types/bootstrap-static/event';
 import {GameSettings} from '../types/bootstrap-static/gameSettings';
@@ -11,29 +10,44 @@ import {ElementStat} from '../types/bootstrap-static/elementStat';
 import {ElementType} from '../types/bootstrap-static/elementType';
 import {FixturesService} from './fixtures.service';
 import {FixturesResult} from '../types/fixtures/fixturesResult';
+import {ApiService} from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BootstrapStaticService {
 
-  readonly #baseURL: string = '/api/';
-
   #lastBootstrapStaticCallDate: Date | null;
   readonly #bootstrapStaticStorageKey = 'lastBootstrapStaticCallDate';
   #bootstrapStaticResult: Observable<BootstrapStaticResult>;
 
-  constructor(private http: HttpClient, private fixturesService: FixturesService) {
+  constructor(private fixturesService: FixturesService, private apiService: ApiService) {
     this.#lastBootstrapStaticCallDate = this.#retrieveLastAPICallDateFromStorage();
     this.#bootstrapStaticResult = this.#fetchBootstrapStaticData();
   }
 
-  //<editor-fold desc="Get">
+  //region Get
+
+  //region Events
   getEventsFromBootstrapStatic(): Observable<Event[]> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => result.events)
     );
   }
+
+  getEventById(eventId: number): Observable<Event> {
+    return this.#bootstrapStaticResult.pipe(
+      map((result: BootstrapStaticResult) => {
+        const event = result.events.find((event: Event) => event.id === eventId);
+        if (event) {
+          return event;
+        } else {
+          throw new Error(`Phase with id ${eventId} not found`);
+        }
+      })
+    );
+  }
+  //endregion
 
   getGameSettingsFromBootstrapStatic(): Observable<GameSettings> {
     return this.#bootstrapStaticResult.pipe(
@@ -41,12 +55,28 @@ export class BootstrapStaticService {
     );
   }
 
+  //region Phases
   getPhasesFromBootstrapStatic(): Observable<Phase[]> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => result.phases)
     );
   }
 
+  getPhaseById(phaseId: number): Observable<Phase> {
+    return this.#bootstrapStaticResult.pipe(
+      map((result: BootstrapStaticResult) => {
+        const phase = result.phases.find((phase: Phase) => phase.id === phaseId);
+        if (phase) {
+          return phase;
+        } else {
+          throw new Error(`Phase with id ${phaseId} not found`);
+        }
+      })
+    );
+  }
+  //endregion
+
+  //region Teams
   getTeamsFromBootstrapStatic(): Observable<Team[]> {
     const fixtures = this.fixturesService.getAllFixturesFromFixtures();
     const teams = this.#bootstrapStaticResult.pipe(
@@ -56,7 +86,8 @@ export class BootstrapStaticService {
     return combineLatest([teams, fixtures]).pipe(
       map(([teams, fixtures]) => {
         for (const team of teams) {
-          this.#updateTeamStatistics(team, fixtures);}
+          this.#updateTeamStatistics(team, fixtures);
+        }
 
         const sortedTeams = teams.sort((a, b) => b.points - a.points);
         for (const [index, team] of sortedTeams.entries()) {
@@ -67,14 +98,19 @@ export class BootstrapStaticService {
     );
   }
 
-  getTeamById(teamId: number): Observable<Team | null> {
+  getTeamById(teamId: number): Observable<Team> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => {
         const team = result.teams.find((team: Team) => team.id === teamId);
-        return team ? team : null;
+        if (team) {
+          return team;
+        } else {
+          throw new Error(`Team with id ${teamId} not found`);
+        }
       })
     );
   }
+  //endregion
 
   getTotalPlayersFromBootstrapStatic(): Observable<number> {
     return this.#bootstrapStaticResult.pipe(
@@ -82,71 +118,95 @@ export class BootstrapStaticService {
     );
   }
 
+  //region Elements
   getElementsFromBootstrapStatic(): Observable<Element[]> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => result.elements)
     );
   }
 
-  getElementById(elementId: number): Observable<Element | null> {
+  getElementById(elementId: number): Observable<Element> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => {
         const element = result.elements.find((el: Element) => el.id === elementId);
-        return element ? element : null;
+        if (element) {
+          return element;
+        } else {
+          throw new Error('Element not found');
+        }
       })
     );
   }
 
-  getElementsByTeamId(teamId: number): Observable<Element[] | null> {
+  getElementsByTeamId(teamId: number): Observable<Element[]> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => {
         const elements = result.elements.filter((el: Element) => el.team === teamId);
-        return elements ? elements : null;
+        if (elements) {
+          return elements;
+        } else {
+          throw new Error(`Elements of team ${teamId} not found`);
+        }
       })
     );
   }
 
+  //endregion
+
+  //region Element Stats
   getElementStatsFromBootstrapStatic(): Observable<ElementStat[]> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => result.element_stats)
     );
   }
 
+  getElementStatByName(elementStatName: string): Observable<ElementStat> {
+    return this.#bootstrapStaticResult.pipe(
+      map((result: BootstrapStaticResult) => {
+        const elementStat = result.element_stats.find((el: ElementStat) => el.name === elementStatName);
+        if (elementStat) {
+          return elementStat;
+        } else {
+          throw new Error(`Element stat ${elementStatName} not found`);
+        }
+      })
+    );
+  }
+
+  //endregion
+
+  //region Element Types
   getElementTypesFromBootstrapStatic(): Observable<ElementType[]> {
     return this.#bootstrapStaticResult.pipe(
       map((result: BootstrapStaticResult) => result.element_types)
     );
   }
 
-  //</editor-fold>
+  getElementTypeById(elementTypeId: number): Observable<ElementType> {
+    return this.#bootstrapStaticResult.pipe(
+      map((result: BootstrapStaticResult) => {
+        const elementType = result.element_types.find((el: ElementType) => el.id === elementTypeId);
+        if (elementType) {
+          return elementType;
+        } else {
+          throw new Error(`Element type ${elementTypeId} not found`);
+        }
+      })
+    );
+  }
 
-  //<editor-fold desc="Fetch Bootstrap Static Data">
+  //endregion
+
+  //endregion
+
+  //region Fetch Bootstrap Static Data
   #fetchBootstrapStaticData(): Observable<BootstrapStaticResult> {
-    console.log('Fetching Bootstrap Static Data');
-    return this.http.get<BootstrapStaticResult>('assets/data/bootstrapStatic.json');
+    return this.apiService.fetchData('bootstrap-static');
   }
 
-  /**
-   * Not implemented.
-   */
-  #fetchBootstrapStaticDataBug(): Observable<BootstrapStaticResult> {
-    const currentDate = new Date();
-    if (!this.#lastBootstrapStaticCallDate || !this.#isSameDay(this.#lastBootstrapStaticCallDate, currentDate)) {
-      return this.http.get<BootstrapStaticResult>('assets/data/bootstrapStatic.json').pipe(
-        tap(result => {
-          this.#lastBootstrapStaticCallDate = currentDate;
-          this.#saveLastAPICallDateToStorage();
-          this.#bootstrapStaticResult = of(result); // Cache the result
-        })
-      );
-    } else {
-      return this.#bootstrapStaticResult; // Return the cached result
-    }
-  }
+  //endregion
 
-  //</editor-fold>
-
-  //<editor-fold desc="Retrieve and save last API call date">
+  //region Retrieve and save last API call date
   #retrieveLastAPICallDateFromStorage(): Date | null {
     const storedDate = localStorage.getItem(this.#bootstrapStaticStorageKey);
     return storedDate ? new Date(storedDate) : null;
@@ -157,9 +217,9 @@ export class BootstrapStaticService {
       localStorage.setItem(this.#bootstrapStaticStorageKey, this.#lastBootstrapStaticCallDate.toISOString());
   }
 
-  //</editor-fold>
+  //endregion
 
-  //<editor-fold desc="Helpers">
+  //region Helpers
   #isSameDay(date1: Date, date2: Date): boolean {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -169,15 +229,15 @@ export class BootstrapStaticService {
   }
 
   #updateTeamStatistics(team: Team, fixtures: FixturesResult[]): void {
-    team.goals_for = 0;
-    team.goals_against = 0;
+    team.goals_scored = 0;
+    team.goals_conceded = 0;
 
     for (const fixture of fixtures) {
       if (fixture.finished) {
         if (fixture.team_h === team.id) {
           team.played++;
-          team.goals_for += fixture.team_h_score;
-          team.goals_against += fixture.team_a_score;
+          team.goals_scored += fixture.team_h_score;
+          team.goals_conceded += fixture.team_a_score;
           if (fixture.team_h_score > fixture.team_a_score) {
             team.win++;
           } else if (fixture.team_h_score === fixture.team_a_score) {
@@ -187,8 +247,8 @@ export class BootstrapStaticService {
           }
         } else if (fixture.team_a === team.id) {
           team.played++;
-          team.goals_for += fixture.team_a_score;
-          team.goals_against += fixture.team_h_score;
+          team.goals_scored += fixture.team_a_score;
+          team.goals_conceded += fixture.team_h_score;
           if (fixture.team_a_score > fixture.team_h_score) {
             team.win++;
           } else if (fixture.team_a_score === fixture.team_h_score) {
@@ -199,9 +259,10 @@ export class BootstrapStaticService {
         }
       }
     }
-    team.goal_difference = team.goals_for - team.goals_against;
+    team.goal_difference = team.goals_scored - team.goals_conceded;
     team.points = team.win * 3 + team.draw;
   }
 
-  //</editor-fold>
+  //endregion
+
 }

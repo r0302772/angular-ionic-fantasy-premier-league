@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
-import {map, Observable, of, tap} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
+import {map, Observable} from 'rxjs';
 import {FixturesResult} from '../types/fixtures/fixturesResult';
+import {ApiService} from './api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,64 +12,55 @@ export class FixturesService {
 
   #lastFixturesCallDate: Date | null;
   readonly #fixturesStorageKey = 'lastFixturesCallDate';
-  #fixturesResult: Observable<FixturesResult[]>;
+  readonly #fixturesResult: Observable<FixturesResult[]>;
 
-  constructor(private http: HttpClient) {
+  //#preSeasonFixtures: Observable<FixturesResult[]>;
+
+  constructor(private apiService: ApiService) {
     this.#lastFixturesCallDate = this.#retrieveLastAPICallDateFromStorage();
     this.#fixturesResult = this.#fetchFixturesData();
   }
 
-  //<editor-fold desc="Get">
+  //region Get
   getAllFixturesFromFixtures(): Observable<FixturesResult[]> {
     return this.#fixturesResult;
   }
 
-  getFixturesOfEventFromFixtures(eventId: number): Observable<FixturesResult[] | null> {
+  getFixturesOfEventFromFixtures(eventId: number): Observable<FixturesResult[]> {
     return this.#fixturesResult.pipe(
       map((result: FixturesResult[]) => {
         const fixtures = result.filter((fix: FixturesResult) => fix.event === eventId);
-        return fixtures ? fixtures : null;
+        if (fixtures) {
+          return fixtures;
+        } else {
+          throw new Error(`Fixtures of event ${eventId} not found`);
+        }
       })
     );
   }
 
-  getFixturesOfTeamFromFixtures(teamId: number): Observable<FixturesResult[] | null> {
+  getFixturesOfTeamFromFixtures(teamId: number): Observable<FixturesResult[]> {
     return this.#fixturesResult.pipe(
       map((result: FixturesResult[]) => {
-        const fixtures = result.filter((fix: FixturesResult) => fix.team_h || fix.team_a === teamId);
-        return fixtures ? fixtures : null;
+        const fixtures = result.filter((fix: FixturesResult) => fix.team_h === teamId || fix.team_a === teamId);
+        if (fixtures) {
+          return fixtures;
+        } else {
+          throw new Error(`Fixtures of team ${teamId} not found`);
+        }
       })
     );
   }
-  //</editor-fold>
 
-  //<editor-fold desc="Fetch Fixtures Data">
+  //endregion
+
+  //region Fetch Fixtures Data
   #fetchFixturesData(): Observable<FixturesResult[]> {
-    console.log('Fetching Fixtures Data');
-    return this.http.get<FixturesResult[]>('assets/data/fixtures.json');
+    return this.apiService.fetchData('fixtures');
   }
+  //endregion
 
-  /**
-   * Not implemented.
-   */
-  #fetchFixturesDataBug(): Observable<FixturesResult[]> {
-    const currentDate = new Date();
-    if (!this.#lastFixturesCallDate || !this.#isSameDay(this.#lastFixturesCallDate, currentDate)) {
-      return this.http.get<FixturesResult[]>('assets/data/bootstrapStatic.json').pipe(
-        tap(result => {
-          this.#lastFixturesCallDate = currentDate;
-          this.#saveLastAPICallDateToStorage();
-          this.#fixturesResult = of(result); // Cache the result
-        })
-      );
-    } else {
-      return this.#fixturesResult; // Return the cached result
-    }
-  }
-
-  //</editor-fold>
-
-  //<editor-fold desc="Retrieve and save last API call date">
+  //region Retrieve and save last API call date
   #retrieveLastAPICallDateFromStorage(): Date | null {
     const storedDate = localStorage.getItem(this.#fixturesStorageKey);
     return storedDate ? new Date(storedDate) : null;
@@ -80,9 +71,9 @@ export class FixturesService {
       localStorage.setItem(this.#fixturesStorageKey, this.#lastFixturesCallDate.toISOString());
   }
 
-  //</editor-fold>
+  //endregion
 
-  //<editor-fold desc="Helpers">
+  //region Helpers
   #isSameDay(date1: Date, date2: Date): boolean {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -91,5 +82,79 @@ export class FixturesService {
     );
   }
 
-  //</editor-fold>
+  //endregion
+
+  getSelectedTeamsByGameweek(): Observable<Promise<{
+    gameweek: number; selectedTeams: { team: number; opponentDifficulty: number }[]
+  }[]>> {
+    console.time('Looper');
+    return this.#fixturesResult.pipe(
+      map(async (fixtures: FixturesResult[]) => {
+        const selectedTeamsByGameweek: { gameweek: number; selectedTeams: { team: number; opponentDifficulty: number }[] }[] = [];
+
+        const gameweeks = this.groupFixturesByGameweek(fixtures);
+
+        for (let gameweek = 0; gameweek < gameweeks.length; gameweek++) {
+          const opponentDifficulty: { [team: number]: { totalDifficulty: number; count: number } } = {};
+
+          const gameweekFixtures = gameweeks[gameweek];
+          gameweekFixtures.forEach((fixture) => {
+            const teamH = fixture.team_h;
+            const teamA = fixture.team_a;
+            if (!opponentDifficulty[teamH]) {
+              opponentDifficulty[teamH] = {totalDifficulty: 0, count: 0};
+            }
+            if (!opponentDifficulty[teamA]) {
+              opponentDifficulty[teamA] = {totalDifficulty: 0, count: 0};
+            }
+            opponentDifficulty[teamH].totalDifficulty += fixture.team_h_difficulty;
+            opponentDifficulty[teamH].count++;
+            opponentDifficulty[teamA].totalDifficulty += fixture.team_a_difficulty;
+            opponentDifficulty[teamA].count++;
+          });
+
+          const sortedTeams = await Promise.all(
+            Object.keys(opponentDifficulty)
+              .sort(
+                (a, b) =>
+                  opponentDifficulty[Number(a)].totalDifficulty / opponentDifficulty[Number(a)].count -
+                  opponentDifficulty[Number(b)].totalDifficulty / opponentDifficulty[Number(b)].count
+              )
+              .map(async (team) => ({
+                team: Number(team),
+                opponentDifficulty:
+                  opponentDifficulty[Number(team)].totalDifficulty / opponentDifficulty[Number(team)].count,
+              }))
+          );
+
+          selectedTeamsByGameweek.push({gameweek, selectedTeams: sortedTeams});
+        }
+        console.log(selectedTeamsByGameweek);
+        console.timeEnd('Looper');
+        return selectedTeamsByGameweek;
+      })
+    );
+  }
+
+  private groupFixturesByGameweek(fixtures: FixturesResult[]): FixturesResult[][] {
+    const gameweeks: FixturesResult[][] = [];
+
+    let currentGameweekFixtures: FixturesResult[] = [];
+    let currentGameweek = 1;
+
+    for (const fixture of fixtures) {
+      if (fixture.event === currentGameweek) {
+        currentGameweekFixtures.push(fixture);
+      } else {
+        gameweeks.push(currentGameweekFixtures);
+        currentGameweekFixtures = [fixture];
+        currentGameweek = fixture.event;
+      }
+    }
+
+    gameweeks.push(currentGameweekFixtures);
+
+    return gameweeks;
+  }
+
 }
